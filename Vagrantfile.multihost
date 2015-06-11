@@ -1,0 +1,81 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.configure(2) do |config|
+
+  # set up hosts files
+  config.vm.provision :shell, inline: 'grep "syslog$"  /etc/hosts 1>/dev/null 2>&1 || echo "192.168.50.200      syslog"  >> /etc/hosts'
+  config.vm.provision :shell, inline: 'grep "el5$"     /etc/hosts 1>/dev/null 2>&1 || echo "192.168.50.5        el5"     >> /etc/hosts'
+  config.vm.provision :shell, inline: 'grep "el6$"     /etc/hosts 1>/dev/null 2>&1 || echo "192.168.50.6        el6"     >> /etc/hosts'
+  config.vm.provision :shell, inline: 'grep "el7$"     /etc/hosts 1>/dev/null 2>&1 || echo "192.168.50.7        el7"     >> /etc/hosts'
+  config.vm.provision :shell, inline: 'grep "sol10$"   /etc/hosts 1>/dev/null 2>&1 || echo "192.168.50.10       sol10"   >> /etc/hosts'
+
+  # define our multiple boxes
+  config.vm.define "syslog" do |syslog|
+    syslog.vm.box = "aetn/CENTOS_6_3_X86_64"
+    syslog.vm.network "private_network", ip: "192.168.50.200", netmask: "255.255.255.0"
+    syslog.vm.hostname = "syslog"
+
+    syslog.vm.provision "shell" do |s| 
+      s.inline = "/vagrant/scripts/configure.sh $1"
+      s.args   = "syslog"
+    end
+  end
+
+  config.vm.define "el5" do |el5|
+    el5.vm.box = "centos5"
+    el5.vm.network "private_network", ip: "192.168.50.5", netmask: "255.255.255.0"
+    el5.vm.hostname = "el5"
+
+
+    el5.vm.provision "shell" do |s| 
+      s.inline = "/vagrant/scripts/configure.sh $1"
+      s.args   = "el5"
+    end
+  end
+
+  config.vm.define "el6" do |el6|
+    el6.vm.box = "centos6"
+    el6.vm.network "private_network", ip: "192.168.50.6", netmask: "255.255.255.0"
+    el6.vm.hostname = "el6"
+
+
+    el6.vm.provision "shell" do |s| 
+      s.inline = "/vagrant/scripts/configure.sh $1"
+      s.args   = "el6"
+    end
+  end
+
+  config.vm.define "el7" do |el7|
+    el7.vm.box = "centos7"
+    el7.vm.network "private_network", ip: "192.168.50.7", netmask: "255.255.255.0"
+    el7.vm.hostname = "el7"
+
+
+    el7.vm.provision "shell" do |s| 
+      s.inline = "/vagrant/scripts/configure.sh $1"
+      s.args   = "el7"
+    end
+
+    # bah
+    el7.vm.provision :shell, inline: '/usr/sbin/ifup eth1 ; echo "bringing up eth1"' 
+  end
+
+  config.vm.define "sol10" do |sol10|
+    sol10.vm.box = "solaris10"
+    sol10.vm.network "private_network", ip: "192.168.50.10", netmask: "255.255.255.0"
+    sol10.vm.hostname = "sol10"
+
+
+    sol10.vm.provision "shell" do |s| 
+      s.inline = "/vagrant/scripts/configure.sh $1"
+      s.args   = "sol10"
+    end
+  end
+
+  # test our connectivity - uncomment when needed and run vagrant provision
+  # config.vm.provision :shell, inline: '/vagrant/scripts/ping.sh'
+
+  # disable key insertion - breaks the solaris 10 box i was using
+  config.ssh.insert_key = false
+
+end
